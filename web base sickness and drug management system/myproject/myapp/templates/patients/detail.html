@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ patient.full_name }}{% endblock %}
+{% block heading %}{{ patient.full_name }}{% endblock %}
+{% block actions %}
+  {% if role == 'admin' or role == 'doctor' %}
+    <a class="btn btn-ghost" href="{% url 'patient_update' patient.pk %}"><i data-lucide="pencil"></i>Edit</a>
+    <a class="btn btn-primary" href="{% url 'visit_create' %}?patient={{ patient.pk }}"><i data-lucide="stethoscope"></i>New visit</a>
+  {% endif %}
+{% endblock %}
+{% block content %}
+{% if patient.allergies %}<div class="alert-danger mb-4"><strong>Allergies:</strong> {{ patient.allergies }}</div>{% endif %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="card h-fit p-5 text-sm">
+    <dl class="space-y-3">
+      <div><dt class="muted">Patient ID</dt><dd class="font-semibold">{{ patient.code }}</dd></div>
+      <div><dt class="muted">Age and gender</dt><dd class="font-semibold">{{ patient.age }}, {{ patient.get_gender_display }}</dd></div>
+      <div><dt class="muted">Date of birth</dt><dd class="font-semibold">{{ patient.date_of_birth|date:"j M Y" }}</dd></div>
+      <div><dt class="muted">Phone</dt><dd class="font-semibold">{{ patient.phone|default:"-" }}</dd></div>
+      <div><dt class="muted">Address</dt><dd class="font-semibold">{{ patient.address|default:"-" }}</dd></div>
+    </dl>
+  </section>
+  <section class="space-y-4 lg:col-span-2">
+    <h2 class="font-bold">Visit history</h2>
+    {% for v in visits %}
+      <article class="card p-5">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div><p class="font-semibold">{{ v.diagnosis }}</p><p class="muted text-sm">{{ v.visit_date|date:"j M Y, H:i" }} with {{ v.doctor.get_full_name|default:v.doctor.username }}</p></div>
+          {% for rx in v.prescriptions.all %}<a href="{% url 'prescription_detail' rx.pk %}" class="badge badge-{{ rx.badge_class }}">Prescription #{{ rx.pk }}: {{ rx.get_status_display }}</a>{% endfor %}
+        </div>
+        <p class="mt-3 text-sm"><span class="muted">Symptoms:</span> {{ v.symptoms }}</p>
+        {% if v.notes %}<p class="mt-1 text-sm"><span class="muted">Notes:</span> {{ v.notes }}</p>{% endif %}
+        {% for rx in v.prescriptions.all %}{% if rx.items.all %}
+          <ul class="mt-3 space-y-1 border-t pt-3 text-sm" style="border-color:var(--line)">
+            {% for i in rx.items.all %}<li>{{ i.drug.name }} x {{ i.quantity }} <span class="muted">({{ i.dosage }})</span></li>{% endfor %}
+          </ul>
+        {% endif %}{% endfor %}
+      </article>
+    {% empty %}<div class="card"><p class="empty">No visits recorded yet.{% if role == 'admin' or role == 'doctor' %} Use New visit to record the first one.{% endif %}</p></div>{% endfor %}
+  </section>
+</div>
+{% endblock %}

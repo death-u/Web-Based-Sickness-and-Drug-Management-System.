@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Patients{% endblock %}
+{% block heading %}Patients{% endblock %}
+{% block actions %}
+  {% if role == 'admin' or role == 'doctor' %}<a class="btn btn-primary" href="{% url 'patient_create' %}"><i data-lucide="plus"></i>Register patient</a>{% endif %}
+{% endblock %}
+{% block content %}
+<form method="get" class="mb-4 flex gap-2">
+  <input class="input" style="max-width:22rem" type="search" name="q" value="{{ q }}" placeholder="Search by name, ID or phone">
+  <button class="btn btn-ghost" type="submit">Search</button>
+</form>
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Patient</th><th>ID</th><th>Age</th><th>Phone</th><th>Allergies</th></tr></thead>
+      <tbody>
+      {% for p in page_obj %}
+        <tr>
+          <td><a class="link" href="{% url 'patient_detail' p.pk %}">{{ p.full_name }}</a></td>
+          <td class="muted">{{ p.code }}</td>
+          <td>{{ p.age }} ({{ p.get_gender_display }})</td>
+          <td>{{ p.phone|default:"-" }}</td>
+          <td>{% if p.allergies %}<span class="badge badge-danger">{{ p.allergies|truncatechars:28 }}</span>{% else %}<span class="muted">None recorded</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="empty">{% if q %}No patient matches "{{ q }}".{% else %}No patients yet. Register the first patient to begin.{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pager.html" %}
+</div>
+{% endblock %}

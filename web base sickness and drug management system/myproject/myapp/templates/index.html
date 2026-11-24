@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block heading %}Dashboard{% endblock %}
+{% block actions %}
+  {% if role == 'admin' or role == 'doctor' %}<a class="btn btn-primary" href="{% url 'visit_create' %}"><i data-lucide="plus"></i>New visit</a>{% endif %}
+{% endblock %}
+{% block content %}
+<div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+  <div class="kpi"><p class="kpi-label">Patients</p><p class="kpi-value">{{ kpi_patients }}</p><p class="kpi-note">registered</p></div>
+  <div class="kpi"><p class="kpi-label">Visits today</p><p class="kpi-value">{{ kpi_visits }}</p><p class="kpi-note">recorded so far</p></div>
+  <div class="kpi {% if kpi_pending %}warn{% endif %}"><p class="kpi-label">Pending prescriptions</p><p class="kpi-value">{{ kpi_pending }}</p><p class="kpi-note">waiting for the pharmacy</p></div>
+  <div class="kpi {% if kpi_restock %}warn{% endif %}"><p class="kpi-label">Low or out of stock</p><p class="kpi-value">{{ kpi_restock }}</p><p class="kpi-note">drugs to reorder</p></div>
+  <div class="kpi {% if kpi_expired %}danger{% elif kpi_expiring %}warn{% endif %}"><p class="kpi-label">Expiry</p><p class="kpi-value">{{ kpi_expired }}</p><p class="kpi-note">expired, {{ kpi_expiring }} expiring within 30 days</p></div>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+  <section class="card">
+    <div class="card-head"><h2>Pending prescriptions</h2><a class="link text-sm" href="{% url 'prescription_list' %}?status=pending">View all</a></div>
+    {% for rx in pending %}
+      <a class="row-link" href="{% url 'prescription_detail' rx.pk %}">
+        <div><p class="font-semibold">{{ rx.visit.patient.full_name }}</p><p class="muted text-sm">{{ rx.visit.diagnosis }}, {{ rx.created_at|timesince }} ago</p></div>
+        <span class="badge badge-warn">Pending</span>
+      </a>
+    {% empty %}<p class="empty">Nothing waiting. New prescriptions from doctors appear here.</p>{% endfor %}
+  </section>
+
+  <section class="card">
+    <div class="card-head"><h2>Drugs needing attention</h2><a class="link text-sm" href="{% url 'drug_list' %}">Open inventory</a></div>
+    {% for d in attention %}
+      <div class="row-link">
+        <div><p class="font-semibold">{{ d.name }}</p><p class="muted text-sm">{{ d.quantity }} left, expires {{ d.expiry_date|date:"j M Y" }}</p></div>
+        <span class="badge badge-{{ d.badge_class }}">{{ d.status_label }}</span>
+      </div>
+    {% empty %}<p class="empty">Stock levels and expiry dates all look healthy.</p>{% endfor %}
+  </section>
+</div>
+
+<section class="card mt-6">
+  <div class="card-head"><h2>Recent visits</h2><a class="link text-sm" href="{% url 'patient_list' %}">All patients</a></div>
+  {% for v in recent_visits %}
+    <a class="row-link" href="{% url 'patient_detail' v.patient_id %}">
+      <div><p class="font-semibold">{{ v.patient.full_name }}</p><p class="muted text-sm">{{ v.diagnosis }}</p></div>
+      <p class="muted text-sm">{{ v.visit_date|date:"j M, H:i" }} with {{ v.doctor.get_full_name|default:v.doctor.username }}</p>
+    </a>
+  {% empty %}<p class="empty">No visits yet. Register a patient, then record their first visit.</p>{% endfor %}
+</section>
+{% endblock %}

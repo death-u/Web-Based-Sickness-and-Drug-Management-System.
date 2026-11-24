@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {% include "partials/head.html" %}
+  <title>Log in - CareLedger</title>
+</head>
+<body class="min-h-screen lg:grid lg:grid-cols-2">
+  <section class="sidebar hidden flex-col justify-between p-12 lg:flex">
+    <div class="flex items-center gap-2.5">
+      <span class="grid h-10 w-10 place-items-center rounded-lg" style="background:var(--teal)"><i data-lucide="heart-pulse" class="h-5 w-5 text-white"></i></span>
+      <span class="text-xl font-bold text-white">CareLedger</span>
+    </div>
+    <div>
+      <p class="max-w-md text-3xl font-bold leading-snug text-white">Every visit, prescription and pill accounted for.</p>
+      <p class="mt-3 max-w-md" style="color:#94A3B8">Sickness records and drug stock in one place, so nothing runs out or expires unnoticed.</p>
+    </div>
+    <p class="text-sm" style="color:#64748B">Sickness and drug management system</p>
+  </section>
+  <section class="flex min-h-screen items-center justify-center px-6 lg:min-h-0">
+    <form method="post" class="w-full max-w-sm space-y-4">{% csrf_token %}
+      <h1 class="text-2xl font-bold">Log in</h1>
+      <p class="muted text-sm">Use the account your administrator created for you.</p>
+      {% if form.errors %}<p class="alert-danger">That username and password don't match. Check both and try again.</p>{% endif %}
+      <div class="field"><label for="id_username">Username</label><input class="input" type="text" name="username" id="id_username" autofocus autocomplete="username" required></div>
+      <div class="field"><label for="id_password">Password</label><input class="input" type="password" name="password" id="id_password" autocomplete="current-password" required></div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="btn btn-primary w-full" type="submit">Log in</button>
+    </form>
+  </section>
+  {% include "partials/scripts.html" %}
+</body>
+</html>

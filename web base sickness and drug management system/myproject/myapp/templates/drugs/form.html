@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block heading %}{{ title }}{% endblock %}
+{% block content %}
+<form method="post" class="card max-w-3xl p-5 sm:p-6">{% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="grid gap-4 sm:grid-cols-2">
+    {% include "partials/field.html" with field=form.name %}
+    {% include "partials/field.html" with field=form.category %}
+    {% include "partials/field.html" with field=form.quantity %}
+    {% include "partials/field.html" with field=form.reorder_level %}
+    {% include "partials/field.html" with field=form.unit_price %}
+    {% include "partials/field.html" with field=form.expiry_date %}
+    <div class="sm:col-span-2">{% include "partials/field.html" with field=form.supplier %}</div>
+  </div>
+  <div class="mt-6 flex gap-2"><button class="btn btn-primary" type="submit">Save drug</button><a class="btn btn-ghost" href="{% url 'drug_list' %}">Cancel</a></div>
+</form>
+{% endblock %}

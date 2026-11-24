@@ -1,0 +1,7 @@
+<div class="rx-row">
+  {% for h in form.hidden_fields %}{{ h }}{% endfor %}
+  {% include "partials/field.html" with field=form.drug %}
+  {% include "partials/field.html" with field=form.dosage %}
+  {% include "partials/field.html" with field=form.quantity %}
+  <button type="button" class="icon-btn danger rm" data-remove-row aria-label="Remove drug"><i data-lucide="x"></i></button>
+</div>

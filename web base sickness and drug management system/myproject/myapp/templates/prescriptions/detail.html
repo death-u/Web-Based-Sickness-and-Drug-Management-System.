@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Prescription #{{ rx.pk }}{% endblock %}
+{% block heading %}Prescription #{{ rx.pk }} <span class="badge badge-{{ rx.badge_class }} align-middle ml-2">{{ rx.get_status_display }}</span>{% endblock %}
+{% block actions %}
+  <button type="button" class="btn btn-secondary" data-print><i data-lucide="printer"></i>Print receipt</button>
+  {% if rx.status == 'pending' and role == 'admin' or rx.status == 'pending' and role == 'doctor' %}
+  <form method="post" action="{% url 'prescription_cancel' rx.pk %}" data-confirm data-tone="danger" data-title="Cancel prescription #{{ rx.pk }}?" data-text="The pharmacy will no longer be able to dispense it." data-button="Cancel prescription">{% csrf_token %}
+    <button class="btn btn-danger" type="submit">Cancel prescription</button>
+  </form>
+  {% endif %}
+  {% if rx.status == 'pending' and role == 'admin' or rx.status == 'pending' and role == 'pharmacist' %}
+  {% if not blocked %}
+  <form method="post" action="{% url 'prescription_dispense' rx.pk %}" data-confirm data-title="Dispense prescription #{{ rx.pk }}?" data-text="These amounts will be deducted from stock:" data-button="Dispense">{% csrf_token %}
+    <ul class="confirm-items" hidden>
+      {% for i in items %}<li><span>{{ i.drug.name }} x {{ i.quantity }}</span><span class="muted">stock {{ i.drug.quantity }} to {{ i.stock_after }}</span></li>{% endfor %}
+    </ul>
+    <button class="btn btn-primary" type="submit"><i data-lucide="check"></i>Dispense</button>
+  </form>
+  {% endif %}
+  {% endif %}
+{% endblock %}
+{% block content %}
+{% if rx.patient.allergies %}<div class="alert-danger mb-4"><strong>Allergies for {{ rx.patient.full_name }}:</strong> {{ rx.patient.allergies }}. Check each drug before dispensing.</div>{% endif %}
+{% if blocked %}<div class="alert-danger mb-4">This prescription can't be dispensed right now. A drug is expired or doesn't have enough stock. Restock it in Drugs, then come back.</div>{% endif %}
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="card h-fit p-5 text-sm">
+    <dl class="space-y-3">
+      <div><dt class="muted">Patient</dt><dd class="font-semibold"><a class="link" href="{% url 'patient_detail' rx.patient.pk %}">{{ rx.patient.full_name }}</a> ({{ rx.patient.code }})</dd></div>
+      <div><dt class="muted">Diagnosis</dt><dd class="font-semibold">{{ rx.visit.diagnosis }}</dd></div>
+      <div><dt class="muted">Prescribed by</dt><dd class="font-semibold">{{ rx.visit.doctor.get_full_name|default:rx.visit.doctor.username }}</dd></div>
+      <div><dt class="muted">Date</dt><dd class="font-semibold">{{ rx.created_at|date:"j M Y, H:i" }}</dd></div>
+      <div><dt class="muted">Total cost</dt><dd class="font-semibold">₦{{ rx.total|floatformat:"2g" }}</dd></div>
+      {% if rx.dispensed_at %}<div><dt class="muted">Dispensed</dt><dd class="font-semibold">{{ rx.dispensed_at|date:"j M Y, H:i" }} by {{ rx.dispensed_by.get_full_name|default:rx.dispensed_by.username }}</dd></div>{% endif %}
+    </dl>
+  </section>
+  <section class="card lg:col-span-2">
+    <div class="card-head"><h2>Drugs</h2></div>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Drug</th><th>Dosage</th><th class="num">Quantity</th><th class="num">Unit price</th><th class="num">Subtotal</th>{% if rx.status == 'pending' %}<th>Stock check</th>{% endif %}</tr></thead>
+      <tbody>
+      {% for i in items %}
+        <tr>
+          <td class="font-semibold">{{ i.drug.name }}</td><td>{{ i.dosage }}</td><td class="num">{{ i.quantity }}</td>
+          <td class="num">₦{{ i.drug.unit_price|floatformat:"2g" }}</td>
+          <td class="num">₦{{ i.line_total|floatformat:"2g" }}</td>
+          {% if rx.status == 'pending' %}<td>{% if i.can_dispense %}<span class="badge badge-ok">{{ i.drug.quantity }} in stock</span>{% elif i.drug.days_to_expiry < 0 %}<span class="badge badge-danger">Expired</span>{% else %}<span class="badge badge-danger">Only {{ i.drug.quantity }} in stock</span>{% endif %}</td>{% endif %}
+        </tr>
+      {% empty %}<tr><td colspan="6" class="empty">This prescription has no drugs on it.</td></tr>{% endfor %}
+      </tbody>
+      <tfoot>
+        <tr><td colspan="4" class="num font-semibold">Total</td><td class="num font-semibold">₦{{ rx.total|floatformat:"2g" }}</td>{% if rx.status == 'pending' %}<td></td>{% endif %}</tr>
+      </tfoot>
+    </table></div>
+  </section>
+</div>
+{% endblock %}

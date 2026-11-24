@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  {% include "partials/head.html" %}
+  <title>{% block title %}Dashboard{% endblock %} - CareLedger</title>
+</head>
+<body class="min-h-screen">
+<aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col p-4 transition-transform duration-150 lg:translate-x-0">
+  <div class="flex items-center gap-2.5 px-2 pt-1">
+    <span class="grid h-9 w-9 place-items-center rounded-lg" style="background:var(--teal)"><i data-lucide="heart-pulse" class="h-5 w-5 text-white"></i></span>
+    <span class="text-lg font-bold text-white">CareLedger</span>
+  </div>
+  <nav class="mt-8 space-y-1">
+    <a class="nav-link {% if section == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i data-lucide="layout-dashboard"></i>Dashboard</a>
+    <a class="nav-link {% if section == 'patients' %}active{% endif %}" href="{% url 'patient_list' %}"><i data-lucide="users"></i>Patients</a>
+    {% if role == 'admin' or role == 'doctor' %}<a class="nav-link {% if section == 'visit' %}active{% endif %}" href="{% url 'visit_create' %}"><i data-lucide="stethoscope"></i>New visit</a>{% endif %}
+    <a class="nav-link {% if section == 'prescriptions' %}active{% endif %}" href="{% url 'prescription_list' %}"><i data-lucide="clipboard-list"></i>Prescriptions</a>
+    <a class="nav-link {% if section == 'drugs' %}active{% endif %}" href="{% url 'drug_list' %}"><i data-lucide="pill"></i>Drugs</a>
+    {% if role == 'admin' %}<a class="nav-link" href="/admin/"><i data-lucide="settings"></i>Manage users</a>{% endif %}
+  </nav>
+  <div class="mt-auto border-t border-white/10 pt-4">
+    <p class="px-2 text-sm font-semibold text-white">{{ user.get_full_name|default:user.username }}</p>
+    <p class="px-2 text-xs capitalize" style="color:#94A3B8">{{ role }}</p>
+    <form method="post" action="{% url 'logout' %}" class="mt-3">{% csrf_token %}
+      <button class="nav-link w-full" type="submit"><i data-lucide="log-out"></i>Log out</button>
+    </form>
+  </div>
+</aside>
+<div id="scrim" class="fixed inset-0 z-30 hidden bg-black/40 lg:hidden"></div>
+
+<div class="lg:pl-64">
+  <header class="topbar sticky top-0 z-20 flex items-center gap-3 border-b bg-white px-4 py-3 lg:hidden" style="border-color:var(--line)">
+    <button id="nav-toggle" class="icon-btn" aria-label="Open menu"><i data-lucide="menu"></i></button>
+    <span class="font-bold">CareLedger</span>
+  </header>
+  <main class="mx-auto max-w-6xl px-4 py-6 sm:px-8 sm:py-8">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-2xl font-bold">{% block heading %}{% endblock %}</h1>
+      <div class="no-print flex flex-wrap items-center gap-2">{% block actions %}{% endblock %}</div>
+    </div>
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<div id="flash" hidden>{% for m in messages %}<span data-level="{{ m.level_tag }}">{{ m }}</span>{% endfor %}</div>
+{% include "partials/scripts.html" %}
+</body>
+</html>

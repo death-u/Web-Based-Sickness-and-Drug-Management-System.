@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Prescriptions{% endblock %}
+{% block heading %}Prescriptions{% endblock %}
+{% block content %}
+<div class="mb-4 flex flex-wrap gap-2">
+  <a class="pill {% if not status %}on{% endif %}" href="?">All</a>
+  <a class="pill {% if status == 'pending' %}on{% endif %}" href="?status=pending">Pending</a>
+  <a class="pill {% if status == 'dispensed' %}on{% endif %}" href="?status=dispensed">Dispensed</a>
+  <a class="pill {% if status == 'cancelled' %}on{% endif %}" href="?status=cancelled">Cancelled</a>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>No.</th><th>Patient</th><th>Diagnosis</th><th>Doctor</th><th class="num">Drugs</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for rx in page_obj %}
+        <tr>
+          <td><a class="link" href="{% url 'prescription_detail' rx.pk %}">#{{ rx.pk }}</a></td>
+          <td>{{ rx.visit.patient.full_name }}</td>
+          <td>{{ rx.visit.diagnosis }}</td>
+          <td>{{ rx.visit.doctor.get_full_name|default:rx.visit.doctor.username }}</td>
+          <td class="num">{{ rx.items.all|length }}</td>
+          <td class="muted">{{ rx.created_at|date:"j M, H:i" }}</td>
+          <td><span class="badge badge-{{ rx.badge_class }}">{{ rx.get_status_display }}</span></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="empty">{% if status %}No {{ status }} prescriptions.{% else %}No prescriptions yet. They appear here when a doctor adds drugs to a visit.{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/pager.html" %}
+</div>
+{% endblock %}

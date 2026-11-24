@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}New visit{% endblock %}
+{% block heading %}New visit{% endblock %}
+{% block content %}
+<form method="post" class="max-w-4xl space-y-6">{% csrf_token %}
+  <section class="card p-5 sm:p-6">
+    {{ form.non_field_errors }}
+    <div class="grid gap-4">
+      {% include "partials/field.html" with field=form.patient %}
+      <div id="allergy-alert" class="alert-danger" hidden><strong>Allergies:</strong> <span></span></div>
+      {% include "partials/field.html" with field=form.symptoms %}
+      {% include "partials/field.html" with field=form.diagnosis %}
+      {% include "partials/field.html" with field=form.notes %}
+    </div>
+  </section>
+
+  <section class="card p-5 sm:p-6">
+    <div class="flex items-center justify-between gap-3">
+      <div><h2 class="font-bold">Prescription</h2><p class="muted text-sm">Optional. Add the drugs to send to the pharmacy.</p></div>
+      <button type="button" id="add-drug" class="btn btn-ghost"><i data-lucide="plus"></i>Add drug</button>
+    </div>
+    {{ formset.management_form }}
+    {{ formset.non_form_errors }}
+    <div id="rx-rows" class="mt-4 space-y-3">
+      {% for f in formset %}{% include "visits/rx_row.html" with form=f %}{% endfor %}
+    </div>
+    <p id="rx-hint" class="muted mt-4 text-sm" {% if formset.forms %}hidden{% endif %}>No drugs added. A visit can be saved without a prescription.</p>
+    <template id="rx-empty">{% include "visits/rx_row.html" with form=formset.empty_form %}</template>
+  </section>
+
+  <div class="flex gap-2"><button class="btn btn-primary" type="submit">Save visit</button><a class="btn btn-ghost" href="{% url 'dashboard' %}">Cancel</a></div>
+</form>
+{{ allergy_map|json_script:"allergy-map" }}
+{% endblock %}
