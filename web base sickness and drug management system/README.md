@@ -125,9 +125,6 @@ python manage.py migrate
 # 3. Create the first account (it becomes the Admin)
 python manage.py createsuperuser
 
-# 4. Optional: load sample drugs, patients and demo staff
-python manage.py seed_demo
-
 # 5. Run the server
 python manage.py runserver
 ```
